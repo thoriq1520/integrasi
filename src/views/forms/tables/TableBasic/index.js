@@ -11,7 +11,8 @@ import Paper from '@mui/material/Paper';
 function TableBasic(){
   const url = "http://192.168.202.8:1337/api/pendaftars?populate[0]=pegawai.jabatan&populate[1]=pegawai.grade&populate[2]=pegawai.jenjang&sort[3]=id_pendaftar"
   const [posts, setPosts] = useState([])
-  const [pendaftar, setPendaftar] = useState([])
+  var nomor = 0;
+
 
   useEffect(() =>{
     if(posts.length === 0){
@@ -52,9 +53,11 @@ function TableBasic(){
               {posts.map(post => 
                 <TableBody>
                   <TableRow>
-                    <TableCell>{post.attributes.pegawai.data.id}</TableCell>
+                    <TableCell>{nomor = nomor + 1}</TableCell>
                     <TableCell align="right">{post.attributes.pegawai.data.attributes.nama}</TableCell>
                     <TableCell align="right">{post.attributes.pegawai.data.attributes.nip}</TableCell>
+                    <TableCell align="right">{post.attributes.pegawai.data.attributes.jabatan.data.attributes.nama_jabatan}</TableCell>
+                    <TableCell align="right">{post.attributes.pegawai.data.attributes.grade.data.attributes.nama_grade}</TableCell>
                     <TableCell align="right">{post.attributes.pegawai.data.attributes.jenjang.data.attributes.jenjang_jabatan_struktural}</TableCell>
                     {/* <TableCell align="right">{post.attributes.pegawai.data.attributes.grade.data.attributes.nama_grade}</TableCell>
                     <TableCell align="right">{post.attributes.pegawai.data.attributes.jabatan.data.attributes.nama_jabatan}</TableCell> */}

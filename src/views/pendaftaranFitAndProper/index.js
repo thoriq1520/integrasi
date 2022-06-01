@@ -6,94 +6,31 @@ import { gridSpacing } from '../../store/constant';
 import { ReplyOutlined } from '@material-ui/icons';
 
 const PendaftaranFitnProper = () => {
-  const [Jenjang, setJenjang] = useState('');
-  const [file, setFile] = useState('');
   const [Nip, setNip] = useState('');
   const [jabatan, setJabatan] = useState([]);
+  const [penguji, setPenguji] = useState([]);
+  const [proyeksi, setProyeksi] = useState([]);
 
-  const handleChange = (event) => {
-    setJenjang(event.target.value);
-  };
-
-  const handleChangee = (event) => {
-    setFile(event.target.value);
-  };
-
-  const url = ""
   const [pendaftar, setPendaftar] = useState({
-    urjab: "",
-    Jenis_FitnProper: "Vcon",
+    jenis_fit_n_proper: "",
     date: "",
-    proyeksi_jabatan: "",
-    jenjang_jabatan: "",
     file_cv: "",
     file_ppt: "",
     pesertas: "",
     nama: "",
     jabatan: "",
-    id:"",
-    id_jabatan:"",
-    id_jenjang:"",
+    id_proyeksi_jabatan:"",
+    id_jenjang_proyeksi_jabatan:"",
+    id_penguji: ""
   })
-
-  //   const handleSubmit = (e) => {
-
-  //     e.preventDefault();
-
-  //     console.log(`Form submitted, ${pendaftar}`);    
-
-  // }
-
-  useEffect(() => {
-    console.log("nip", Nip);
-    if(jabatan.length === 0){
-      getJabatan()
-    }
-    // POST request using axios inside useEffect React hook
-    // const article = { title: 'React Hooks POST Request Example' };
-    // axios.post('http://192.168.202.8:1337/api/pengujis/', article)
-    //     .then(response => setPendaftar(response.data.id));
-
-  }, []);
-
-  // useEffect(() =>{
-  //     const idpengujis = {
-  //         id_penguji: this.state.idpenguji
-  //     }
-  //     axios.post('http://affc-103-100-128-52.ngrok.io/api/pengujis?sort[0]=id_penguji', idpengujis)
-
-  // });
-
-  // function submit(e) {
-  //   const idx = setPendaftar.findIndex(object => {
-  //     return Nip === document.getElementById("Nip").value
-  //   })
-  //   e.preventDefault();
-  //   axios.post(url, {
-  //     data: {
-  //       urjab: document.getElementById("urjab").value,
-  //       Jenis_FitnProper: document.getElementById("fp").value,
-  //       date: document.getElementById("date").value,
-  //       proyeksi_jabatan: document.getElementById("proyeksi").value,
-  //       jenjang_jabatan: document.getElementById("jenjab").value,
-  //       file_cv: "",
-  //       file_ppt: "",
-  //       pesertas: pendaftar[idx].id,
-  //     }
-  //   })
-  //     .then(res => {
-  //       console.log(res.data)
-  //     })
-  //   document.location.reload(true)
-  // }
 
   const postFitProper = () =>{
     const data = {
       pegawai: pendaftar.id,
       tanggal_tes: pendaftar.date,
       tanggal_pendaftaran:pendaftar.date,
-      jenis_fit_n_proper: pendaftar.Jenis_FitnProper,
-      jabatan: pendaftar.id_jabatan
+      jenis_fit_n_proper: pendaftar.jenis_fit_n_proper,
+      jabatan: pendaftar.id_proyeksi_jabatan
     }
     axios.post(`http://192.168.202.8:1337/api/pendaftars`,{data})
     .then((res)=>{
@@ -117,19 +54,57 @@ const PendaftaranFitnProper = () => {
   }
 
   const getJabatan = () => {
-    axios.get(`http://192.168.202.8:1337/api/jabatans?populate=jenjang&filters[id][$eq]=3`)
+    axios.get(`http://192.168.202.8:1337/api/jabatans`)
     .then((res) => {
       console.log("Ini jabatan", res.data.data)
       setJabatan(res.data.data)
-      setPendaftar({
-        ...pendaftar,
-        id_jenjang: res.data.data.atrributes.jenjang.data.attributes.id_jenjang,
-      })
     })
     .catch(err => {
       console.log(err)
     })
   }
+
+  const getJenjang = () => {
+    setPendaftar({...pendaftar,id_proyeksi_jabatan:proyeksi})
+    axios.get(`http://192.168.202.8:1337/api/jabatans/${proyeksi}?populate=jenjang`)
+    .then((res) => {
+      console.log("Ini jenjang nya", res.data.data)
+      setPendaftar({
+        ...pendaftar,
+        id_jenjang_proyeksi_jabatan: res.data.data.attributes.jenjang.data.attributes.jenjang_jabatan_struktural,
+      })
+    })
+    .catch(err => {
+      console.log(err)
+    })
+    
+  }
+
+  const getPenguji = () => {
+    axios.get(`http://192.168.202.8:1337/api/pengujis?populate=pegawai`)
+    .then((res) => {
+      console.log("Ini Penguji", res.data.data)
+      // setPendaftar
+      setPenguji(res.data.data)
+    })
+  }
+
+  useEffect(() => {
+    console.log("nip", Nip);
+    console.log("proyeksi", proyeksi);
+    if(jabatan.length === 0){
+      getJabatan()
+    }
+
+    if(proyeksi.length !== 0){
+      getJenjang()
+    }
+
+    if(penguji.length === 0){
+      getPenguji()
+    }
+
+  }, [proyeksi]);
 
   return (
     <Grid container>
@@ -159,7 +134,7 @@ const PendaftaranFitnProper = () => {
             </Grid>
           </Grid>
           <Grid container spacing={1} paddingBottom={3}>
-            <Grid item xs={2} md={2.2}>
+            <Grid item xs={3} md={2.2}>
               <Typography variant="h5" paddingLeft={3} display='center' >
                 Nama
               </Typography>
@@ -170,7 +145,7 @@ const PendaftaranFitnProper = () => {
               type="Nama"
               autoComplete="current-password"
               value={pendaftar.nama}
-              read-only
+              disabled
             />
           </Grid>
           <Grid container spacing={1} paddingBottom={3}>
@@ -184,7 +159,8 @@ const PendaftaranFitnProper = () => {
               label="Jabatan"
               type="Jabatan"
               value={pendaftar.jabatan}
-              autoComplete="current-password" />
+              autoComplete="current-password"
+              disabled />
           </Grid>
           <Grid container spacing={1} paddingBottom={3}>
             <Grid item xs={2} md={2.2}>
@@ -193,7 +169,7 @@ const PendaftaranFitnProper = () => {
               </Typography>
             </Grid>
             <TextField
-              id="outlined-password-input"
+              id="fullwidth"
               label=""
               type="Date"
               onChange={(e)=>setPendaftar({...pendaftar,date: e.target.value})}
@@ -217,14 +193,12 @@ const PendaftaranFitnProper = () => {
                   
                   label="Proyeksi"
                   
-                  onChange={(e)=>setPendaftar({...pendaftar,id_jabatan: e.target.value})}
-                  value={pendaftar.id_jabatan}
+                  onChange={(e)=>setProyeksi(e.target.value)}
+                  value={proyeksi}
                   >
                   {jabatan.map(jab =>
                     <MenuItem value={jab.id}>{jab.attributes.nama_jabatan}</MenuItem>
                   )}
-                  {/* <MenuItem value={20}>Manager Menengah</MenuItem>
-                  <MenuItem value={30}>Manager Dasar</MenuItem> */}
                 </Select>
               </FormControl>
             </Grid>
@@ -240,8 +214,9 @@ const PendaftaranFitnProper = () => {
               id="outlined-password-input"
               label="Jenjang"
               type="Jenjang"
-              value={pendaftar.id_jenjang}
-              autoComplete="current-password" />
+              value={pendaftar.id_jenjang_proyeksi_jabatan}
+              autoComplete="current-password" 
+              disabled/>
           </Grid>
           <Grid container spacing={1} paddingBottom={3}>
             <Grid item xs={2} md={2.2}>
@@ -257,12 +232,12 @@ const PendaftaranFitnProper = () => {
                 <Select
                   labelId="Jenis Fit & Proper"
                   id="Jenis Fit & Proper"
-                  value={Jenjang}
+                  value={pendaftar.jenis_fit_n_proper}
                   label="Jenis Fit & Proper"
-                  onChange={handleChange}
+                  onChange={(e)=>setPendaftar({...pendaftar,jenis_fit_n_proper:e.target.value})}
                 >
-                  <MenuItem value={10}>Reguler</MenuItem>
-                  <MenuItem value={20}>Non Reguler</MenuItem>
+                  <MenuItem value={"Reguler"}>Reguler</MenuItem>
+                  <MenuItem value={"Vcon"}>Vcon</MenuItem>
                 </Select>
               </FormControl>
             </Grid>
@@ -285,10 +260,11 @@ const PendaftaranFitnProper = () => {
                 Upload PPT
               </Typography>
             </Grid>
-            <FormControl>
-              <InputLabel type="file" onChange={handleChangee} />
-              <Button variant="contained" md={1} type="submit">Upload</Button>
-            </FormControl>
+            <TextField
+              id="fullwidth"
+              label="Link PPT"
+              type="PPT"
+              autoComplete="current-password" />
           </Grid>
           <Grid container spacing={1} paddingBottom={3}>
             <Grid item xs={2} md={2.2}>
@@ -296,69 +272,85 @@ const PendaftaranFitnProper = () => {
                 Upload CV
               </Typography>
             </Grid>
-            <FormControl>
-              <InputLabel type="file" onChange={handleChangee} />
-              <Button variant="contained" md={1} type="submit">Upload</Button>
-            </FormControl>
+            <TextField
+              id="outlined-password-input"
+              label="Link CV"
+              type="CV"
+              autoComplete="current-password" />
           </Grid>
           <Grid container spacing={1} paddingBottom={3}>
             <Grid item xs={2} md={2.2}>
               <Typography variant="h5" paddingLeft={3} display='center' >
-                Penguji
+                Penguji 1
+              </Typography>
+            </Grid>
+            <Grid item xs={1} md={2.2}>
+              <FormControl fullWidth>
+                <InputLabel id="Penguji 1" >
+                  Penguji 1
+                </InputLabel>
+                <Select
+                  labelId="Penguji 1"
+                  id="Penguji 1"
+                  
+                  label="Penguji 1"
+                  
+                  onChange={(e)=>setPendaftar({...pendaftar, id_penguji: e.target.value})}
+                  value={penguji}
+                  >
+                  {penguji.map(daftarpenguji =>
+                    <MenuItem value={daftarpenguji.id}>{daftarpenguji.attributes.pegawai.data.attributes.nama}</MenuItem>
+                  )}
+                </Select>
+              </FormControl>
+            </Grid>
+          </Grid>
+          <Grid container spacing={1} paddingBottom={3}>
+            <Grid item xs={2} md={2.2}>
+              <Typography variant="h5" paddingLeft={3} display='center' >
+                Penguji 2
               </Typography>
             </Grid>
             <TextField
               id="outlined-password-input"
-              label="Penguji"
-              type="Penguji"
+              label="Penguji 2"
+              type="Penguji 2"
               autoComplete="current-password" />
           </Grid>
           <Grid container spacing={1} paddingBottom={3}>
-            <Grid item xs={3} md={2.2}>
+            <Grid item xs={2} md={2.2}>
               <Typography variant="h5" paddingLeft={3} display='center' >
-                Pewawancara 1*
+                Penguji 3
               </Typography>
             </Grid>
             <TextField
               id="outlined-password-input"
-              label="Pewawancara 1"
-              type="Pewawancara 1"
+              label="Penguji 3"
+              type="Penguji 3"
               autoComplete="current-password" />
           </Grid>
           <Grid container spacing={1} paddingBottom={3}>
-            <Grid item xs={3} md={2.2}>
+            <Grid item xs={2} md={2.2}>
               <Typography variant="h5" paddingLeft={3} display='center' >
-                Pewawancara 2*
+                Penguji 4
               </Typography>
             </Grid>
             <TextField
               id="outlined-password-input"
-              label="Pewawancara 2"
-              type="Pewawancara 2"
+              label="Penguji 4"
+              type="Penguji 4"
               autoComplete="current-password" />
           </Grid>
           <Grid container spacing={1} paddingBottom={3}>
-            <Grid item xs={3} md={2.2}>
+            <Grid item xs={2} md={2.2}>
               <Typography variant="h5" paddingLeft={3} display='center' >
-                Pewawancara 3*
+                Penguji 5
               </Typography>
             </Grid>
             <TextField
               id="outlined-password-input"
-              label="Pewawancara 3"
-              type="Pewawancara 3"
-              autoComplete="current-password" />
-          </Grid>
-          <Grid container spacing={1} paddingBottom={3}>
-            <Grid item xs={3} md={2.2}>
-              <Typography variant="h5" paddingLeft={3} display='center' >
-                Pewawancara 4*
-              </Typography>
-            </Grid>
-            <TextField
-              id="outlined-password-input"
-              label="Pewawancara 4"
-              type="Pewawancara 4"
+              label="Penguji 5"
+              type="Penguji 5"
               autoComplete="current-password" />
           </Grid>
           <Grid container spacing={1} paddingBottom={3}>
